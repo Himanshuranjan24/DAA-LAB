@@ -6,72 +6,90 @@ struct CHAR {
 };
 struct Node {
     struct CHAR data;
-    struct Node* left;
-    struct Node* right;
+    struct Node *left;
+    struct Node *right;
 };
-void swap(struct CHAR* a, struct CHAR* b) {
-    struct CHAR temp = *a;
-    *a = *b;
-    *b = temp;
+struct MinPriorityQueue {
+    int size;
+    struct Node **array;
+};
+struct Node* createNode(struct CHAR character) {
+    struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
+    newNode->data = character;
+    newNode->left = newNode->right = NULL;
+    return newNode;
 }
-void minHeapify(struct CHAR arr[], int size, int index) {
-    int smallest = index;
-    int left = 2 * index + 1;
-    int right = 2 * index + 2;
+struct MinPriorityQueue* createMinPriorityQueue(int capacity) {
+    struct MinPriorityQueue* queue = (struct MinPriorityQueue*)malloc(sizeof(struct MinPriorityQueue));
+    queue->size = 0;
+    queue->array = (struct Node**)malloc(capacity * sizeof(struct Node*));
+    return queue;
+}
+void swapNodes(struct Node** a, struct Node** b) {
+    struct Node* t = *a;
+    *a = *b;
+    *b = t;
+}
+void minHeapify(struct MinPriorityQueue* queue, int idx) {
+    int smallest = idx;
+    int left = 2 * idx + 1;
+    int right = 2 * idx + 2;
 
-    if (left < size && arr[left].frequency < arr[smallest].frequency)
+    if (left < queue->size && queue->array[left]->data.frequency < queue->array[smallest]->data.frequency)
         smallest = left;
 
-    if (right < size && arr[right].frequency < arr[smallest].frequency)
+    if (right < queue->size && queue->array[right]->data.frequency < queue->array[smallest]->data.frequency)
         smallest = right;
 
-    if (smallest != index) {
-        swap(&arr[index], &arr[smallest]);
-        minHeapify(arr, size, smallest);
+    if (smallest != idx) {
+        swapNodes(&queue->array[idx], &queue->array[smallest]);
+        minHeapify(queue, smallest);
     }
 }
-void buildMinHeap(struct CHAR arr[], int size) {
-    for (int i = size / 2 - 1; i >= 0; i--)
-        minHeapify(arr, size, i);
+int isEmpty(struct MinPriorityQueue* queue) {
+    return queue->size == 0;
 }
-struct CHAR extractMin(struct CHAR arr[], int* size) {
-    struct CHAR min = arr[0];
-    arr[0] = arr[(*size) - 1];
-    (*size)--;
-    minHeapify(arr, *size, 0);
-    return min;
+struct Node* extractMin(struct MinPriorityQueue* queue) {
+    struct Node* minNode = queue->array[0];
+    queue->array[0] = queue->array[queue->size - 1];
+    --queue->size;
+    minHeapify(queue, 0);
+    return minNode;
 }
-struct Node* buildHuffmanTree(struct CHAR arr[], int size) {
-    buildMinHeap(arr, size);
-    
-    while (size > 1) {
-        struct Node* leftNode = (struct Node*)malloc(sizeof(struct Node));
-        struct Node* rightNode = (struct Node*)malloc(sizeof(struct Node));
-        
-        leftNode->data = extractMin(arr, &size);
-        rightNode->data = extractMin(arr, &size);
-        
-        struct Node* newNode = (struct Node*)malloc(sizeof(struct Node));
-        newNode->data.frequency = leftNode->data.frequency + rightNode->data.frequency;
-        newNode->left = leftNode;
-        newNode->right = rightNode;
-
-        arr[size++] = newNode->data;
-        buildMinHeap(arr, size);
+void insert(struct MinPriorityQueue* queue, struct Node* node) {
+    ++queue->size;
+    int i = queue->size - 1;
+    while (i > 0 && node->data.frequency < queue->array[(i - 1) / 2]->data.frequency) {
+        queue->array[i] = queue->array[(i - 1) / 2];
+        i = (i - 1) / 2;
     }
-    struct Node* root = (struct Node*)malloc(sizeof(struct Node));
-    root->data = arr[0];
-    root->left = NULL;
-    root->right = NULL;
-
-    return root;
+    queue->array[i] = node;
 }
+struct Node* buildHuffmanTree(struct CHAR characters[], int n) {
+    struct Node *left, *right, *top;
+    struct MinPriorityQueue* queue = createMinPriorityQueue(n);
 
-void inOrderTraversal(struct Node* root) {
-    if (root != NULL) {
-        inOrderTraversal(root->left);
-        printf("%c ", root->data.symbol);
-        inOrderTraversal(root->right);
+    for (int i = 0; i < n; ++i) {
+        insert(queue, createNode(characters[i]));
+    }
+
+    while (!isEmpty(queue)) {
+        left = extractMin(queue);
+        right = extractMin(queue);
+
+        top = createNode((struct CHAR){'$', left->data.frequency + right->data.frequency});
+        top->left = left;
+        top->right = right;
+
+        insert(queue, top);
+    }
+    return extractMin(queue);
+}
+void inorderTraversal(struct Node* root) {
+    if (root) {
+        inorderTraversal(root->left);
+        printf("%c", root->data.symbol);
+        inorderTraversal(root->right);
     }
 }
 
@@ -83,19 +101,19 @@ int main() {
     struct CHAR characters[n];
 
     printf("Enter the characters: ");
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; ++i) {
         scanf(" %c", &characters[i].symbol);
     }
 
     printf("Enter its frequencies: ");
-    for (int i = 0; i < n; i++) {
+    for (int i = 0; i < n; ++i) {
         scanf("%d", &characters[i].frequency);
     }
 
     struct Node* root = buildHuffmanTree(characters, n);
 
     printf("In-order traversal of the tree (Huffman): ");
-    inOrderTraversal(root);
-    
+    inorderTraversal(root);
+
     return 0;
 }
