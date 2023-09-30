@@ -59,7 +59,6 @@ struct Node* buildHuffmanTree(struct CHAR arr[], int size) {
         arr[size++] = newNode->data;
         buildMinHeap(arr, size);
     }
-
     struct Node* root = (struct Node*)malloc(sizeof(struct Node));
     root->data = arr[0];
     root->left = NULL;
@@ -67,6 +66,7 @@ struct Node* buildHuffmanTree(struct CHAR arr[], int size) {
 
     return root;
 }
+
 void inOrderTraversal(struct Node* root) {
     if (root != NULL) {
         inOrderTraversal(root->left);
