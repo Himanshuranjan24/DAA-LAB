@@ -59,5 +59,6 @@
     "Q1.C": "cpp",
     "Q2.C": "cpp",
     "Q3.C": "cpp"
-  }
+  },
+  "C_Cpp_Runner.msvcSecureNoWarnings": false
 }

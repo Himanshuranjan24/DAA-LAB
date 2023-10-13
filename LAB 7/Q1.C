@@ -51,6 +51,7 @@ int main() {
     printf("Enter the capacity of knapsack: ");
     double capacity;
     scanf("%lf", &capacity);
+    
     heapSort(items, n);
 
     printf("Item No\tValue\tWeight\tAmount to be taken\n");
